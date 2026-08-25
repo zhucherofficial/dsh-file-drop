@@ -38,17 +38,4 @@ dsh plugin --profile web add link:/absolute/path/to/dsh-file-drop
 
 The second command changes the selected profile's dependency manifest. For a disposable verification profile, set `DSH_HOME` to a temporary directory before running it.
 
-## GitHub publishing
-
-The workspace is intentionally not tied to a particular GitHub account. Replace the placeholder repository URL in `package.json`, create the repository, then run:
-
-```sh
-git init
-git add package.json cordis.patch.yml lib README.md test
-git commit -m "Initial dsh-file-drop plugin"
-git branch -M main
-git remote add origin https://github.com/zhu1090093659/dsh-file-drop.git
-git push -u origin main
-```
-
 No credentials or remote are assumed by the plugin itself.
