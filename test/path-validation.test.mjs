@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile, rm } from 'node:fs/promises'
 import { createServer } from 'node:http'
+import { runInNewContext } from 'node:vm'
 
 test('package metadata exposes a dsh bundle and browser client', async () => {
   const packageJson = await import('../package.json', { with: { type: 'json' } })
@@ -9,11 +10,21 @@ test('package metadata exposes a dsh bundle and browser client', async () => {
   assert.equal(packageJson.default.exports['./client'], './lib/client.js')
 })
 
-test('host and client modules parse as ES modules', async () => {
+test('host module parses and client bundle registers with ModuleLoader', async () => {
   const host = await import('../lib/index.js')
-  const client = await import('../lib/client.js')
   assert.equal(host.name, 'dsh-file-drop')
+
+  const source = await readFile(new URL('../lib/client.js', import.meta.url), 'utf8')
+  const entries = []
+  runInNewContext(source, {
+    window: { __ModuleLoader__: { load: entry => entries.push(entry) } },
+  })
+  assert.equal(entries.length, 1)
+  assert.equal(entries[0].id, 'dsh-file-drop')
+  const client = entries[0].factory(() => { throw new Error('unexpected client dependency') })
   assert.equal(client.name, 'dsh-file-drop/client')
+  assert.deepEqual(Array.from(client.inject), ['sessions', 'conversation'])
+  assert.equal(typeof client.apply, 'function')
 })
 
 async function routeServer() {

@@ -29,6 +29,8 @@ dsh plugin --profile web add git+https://github.com/YOUR_ACCOUNT/dsh-file-drop.g
 
 The repository must keep `package.json`, `cordis.patch.yml`, and the `lib/` directory at its root. `dsh plugin` forwards the package spec to pnpm and automatically adds packages declaring `dsh.bundle.patch` to the web profile roster.
 
+The browser entry is served through DSH's client-module loader. Keep `lib/client.js` as a self-registering `window.__ModuleLoader__.load(...)` bundle; a plain ESM export is not a valid web client entry.
+
 ## Local development
 
 ```sh
