@@ -1,0 +1,96 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate release
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - name: Verify release event, tag, and version commit
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          TAG_SHA=$(git rev-parse "$RELEASE_TAG^{commit}")
+          EVENT_SHA=$(git rev-parse "$RELEASE_SHA^{commit}")
+          if [[ "$TAG_SHA" != "$EVENT_SHA" ]]; then
+            echo "The release tag moved after the release event was created." >&2
+            exit 1
+          fi
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          PREVIOUS_VERSION=$(git show HEAD^:package.json | node -e "let input = ''; process.stdin.on('data', (chunk) => input += chunk); process.stdin.on('end', () => console.log(JSON.parse(input).version));")
+          if [[ "$CURRENT_VERSION" == "$PREVIOUS_VERSION" ]]; then
+            echo "The release tag must point directly to the commit that changes package.json version." >&2
+            exit 1
+          fi
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify release version and Changesets
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          LATEST_VERSION=$(npm view "$PACKAGE_NAME" dist-tags.latest)
+          LATEST_VERSION="$LATEST_VERSION" npm run verify-release -- "$RELEASE_TAG"
+      - run: npm test
+      - name: Build publication tarball without lifecycle scripts
+        run: |
+          mkdir release-artifact
+          npm pack --ignore-scripts --json > pack-result.json
+          node -e "const fs = require('node:fs'); const [result] = JSON.parse(fs.readFileSync('pack-result.json', 'utf8')); if (!result?.filename) throw new Error('npm pack did not produce a tarball'); fs.renameSync(result.filename, 'release-artifact/' + result.filename);"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: npm-package
+          path: release-artifact/*.tgz
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish to npm
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Require an OIDC-capable npm CLI
+        run: |
+          node -e "const { execFileSync } = require('node:child_process'); const version = execFileSync('npm', ['--version'], { encoding: 'utf8' }).trim(); const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version); if (!match) throw new Error('Stable npm 11.5.1 or newer is required for Trusted Publishing'); const [major, minor, patch] = match.slice(1).map(Number); if (major < 11 || (major === 11 && (minor < 5 || (minor === 5 && patch < 1)))) throw new Error('npm 11.5.1 or newer is required for Trusted Publishing');"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: npm-package
+          path: release-artifact
+      - name: Publish validated tarball with provenance
+        run: |
+          shopt -s nullglob
+          tarballs=(release-artifact/*.tgz)
+          test "${#tarballs[@]}" -eq 1
+          npm publish "${tarballs[0]}" --provenance --access public --ignore-scripts
