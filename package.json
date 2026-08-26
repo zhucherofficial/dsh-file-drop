@@ -44,6 +44,7 @@
   },
   "scripts": {
     "changeset": "changeset",
+    "changeset:empty": "changeset add --empty",
     "test": "node --test test/*.test.mjs",
     "verify-release": "node scripts/verify-release.mjs",
     "version-packages": "changeset version"

@@ -24,7 +24,13 @@ npm ci
 npm run changeset
 ```
 
-Select `patch`, `minor`, or `major` and write a user-facing summary. Documentation and CI-only changes should include an empty Changeset. CI enforces this requirement.
+Select `patch`, `minor`, or `major` and write a user-facing summary. Documentation and CI-only changes should include an empty Changeset:
+
+```sh
+npm run changeset:empty
+```
+
+CI requires a newly added non-README Changeset on ordinary pull requests. A version pull request is exempt only when it updates the changelog and lockfile and consumes a pre-existing Changeset for this package.
 
 ## Prepare the release
 
