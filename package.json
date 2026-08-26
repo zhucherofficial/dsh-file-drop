@@ -1,5 +1,5 @@
 {
-  "name": "@zhucherofficial/dsh-file-drop",
+  "name": "@zhucher/dsh-file-drop",
   "version": "0.2.0",
   "description": "Attach dropped files and folders to DSH web conversations, start workspace-free chats, and preflight plugin conflicts.",
   "type": "module",

@@ -1,4 +1,4 @@
-# @zhucherofficial/dsh-file-drop
+# @zhucher/dsh-file-drop
 
 `dsh-file-drop` adds attachment, workspace-free chat, and conflict-preflight support to the DSH web profile:
 
@@ -40,7 +40,7 @@ Before editing, the resolver backs up `~/.dsh/profiles/web/cordis.patch.yml`; af
 The unscoped npm name `dsh-file-drop` belongs to a different project. This package uses a scope so the install command cannot resolve to that project. After the first public npm release, install it with:
 
 ```sh
-dsh plugin --profile web add @zhucherofficial/dsh-file-drop
+dsh plugin --profile web add @zhucher/dsh-file-drop
 ```
 
 The repository must keep `package.json`, `cordis.patch.yml`, and the `lib/` directory at its root. `dsh plugin` forwards the package spec to pnpm and automatically adds packages declaring `dsh.bundle.patch` to the web profile roster.
