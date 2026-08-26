@@ -2,14 +2,4 @@
 # dsh.client declaration in package.json loads the browser half.
 - insert:
     - id: ui-dsh-file-drop
-      name: dsh-file-drop
-
-# Default preference for the common duplicate describe_image tool. Other
-# duplicate registries are handled by the dsh-file-drop-resolve preflight.
-- id: web-ui-describe-image
-  name: '@linxin666/dsh-tool-describe-image'
-  disabled: true
-- id: dsh-auxiliary
-  config:
-    tool:
-      enabled: true
+      name: '@zhucherofficial/dsh-file-drop'

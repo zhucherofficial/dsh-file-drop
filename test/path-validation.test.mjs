@@ -7,6 +7,7 @@ import { runInNewContext } from 'node:vm'
 
 test('package metadata exposes a dsh bundle and browser client', async () => {
   const packageJson = await import('../package.json', { with: { type: 'json' } })
+  assert.equal(packageJson.default.name, '@zhucherofficial/dsh-file-drop')
   assert.equal(packageJson.default.dsh.bundle.patch, './cordis.patch.yml')
   assert.equal(packageJson.default.exports['./client'], './lib/client.js')
   assert.equal(packageJson.default.bin['dsh-file-drop-resolve'], './bin/resolve-conflicts.js')
@@ -14,7 +15,7 @@ test('package metadata exposes a dsh bundle and browser client', async () => {
 
 test('host module parses and client bundle registers with ModuleLoader', async () => {
   const host = await import('../lib/index.js')
-  assert.equal(host.name, 'dsh-file-drop')
+  assert.equal(host.name, '@zhucherofficial/dsh-file-drop')
 
   const source = await readFile(new URL('../lib/client.js', import.meta.url), 'utf8')
   const entries = []
@@ -28,9 +29,9 @@ test('host module parses and client bundle registers with ModuleLoader', async (
     URL,
   })
   assert.equal(entries.length, 1)
-  assert.equal(entries[0].id, 'dsh-file-drop')
+  assert.equal(entries[0].id, '@zhucherofficial/dsh-file-drop')
   const client = entries[0].factory(() => { throw new Error('unexpected client dependency') })
-  assert.equal(client.name, 'dsh-file-drop/client')
+  assert.equal(client.name, '@zhucherofficial/dsh-file-drop/client')
   assert.deepEqual(Array.from(client.inject), ['sessions', 'conversation', 'inputTriggers'])
   assert.equal(typeof client.apply, 'function')
   assert.equal(client.shouldClaimDrop({ types: ['Files'], files: [{ type: 'text/plain' }], items: [] }), true)

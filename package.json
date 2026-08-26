@@ -1,5 +1,5 @@
 {
-  "name": "dsh-file-drop",
+  "name": "@zhucherofficial/dsh-file-drop",
   "version": "0.2.0",
   "description": "Attach dropped files and folders to DSH web conversations, start workspace-free chats, and preflight plugin conflicts.",
   "type": "module",
@@ -16,14 +16,31 @@
     "bin",
     "lib",
     "cordis.patch.yml",
+    "CHANGELOG.md",
     "README.md",
     "LICENSE",
     "package.json"
   ],
   "license": "MIT",
+  "author": "Ken Zhang",
+  "homepage": "https://github.com/zhucherofficial/dsh-file-drop#readme",
+  "bugs": {
+    "url": "https://github.com/zhucherofficial/dsh-file-drop/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/zhu1090093659/dsh-file-drop.git"
+    "url": "git+https://github.com/zhucherofficial/dsh-file-drop.git"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "file-drop",
+    "attachments",
+    "plugin-conflicts"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "test": "node --test test/*.test.mjs"
@@ -33,7 +50,7 @@
   },
   "dsh": {
     "engines": {
-      "dsh": ">=0.1.1-rc.1"
+      "dsh": ">=0.1.1-rc.2 <0.2.0"
     },
     "bundle": {
       "patch": "./cordis.patch.yml"
