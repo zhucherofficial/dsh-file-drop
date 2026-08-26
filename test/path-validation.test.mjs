@@ -10,7 +10,7 @@ test('package metadata exposes a dsh bundle and browser client', async () => {
   assert.equal(packageJson.default.name, '@zhucherofficial/dsh-file-drop')
   assert.equal(packageJson.default.dsh.bundle.patch, './cordis.patch.yml')
   assert.equal(packageJson.default.exports['./client'], './lib/client.js')
-  assert.equal(packageJson.default.bin['dsh-file-drop-resolve'], './bin/resolve-conflicts.js')
+  assert.equal(packageJson.default.bin['dsh-file-drop-resolve'], 'bin/resolve-conflicts.js')
 })
 
 test('host module parses and client bundle registers with ModuleLoader', async () => {

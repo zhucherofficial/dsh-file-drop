@@ -18,4 +18,4 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
       - run: npm test
-      - run: npm pack --dry-run
+      - run: npm publish --dry-run --json
