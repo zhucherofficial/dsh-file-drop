@@ -1,7 +1,7 @@
 {
   "name": "dsh-file-drop",
-  "version": "0.1.0",
-  "description": "Drag files and folders into a DSH web conversation and start workspace-free conversations.",
+  "version": "0.2.0",
+  "description": "Attach dropped files and folders to DSH web conversations, start workspace-free chats, and preflight plugin conflicts.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -9,7 +9,11 @@
     "./client": "./lib/client.js",
     "./package.json": "./package.json"
   },
+  "bin": {
+    "dsh-file-drop-resolve": "./bin/resolve-conflicts.js"
+  },
   "files": [
+    "bin",
     "lib",
     "cordis.patch.yml",
     "README.md",
@@ -37,7 +41,8 @@
     "client": {
       "inject": [
         "@deepseek-ai/dsh-client-runtime",
-        "@deepseek-ai/dsh-client-ui-conversation"
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-input-trigger"
       ],
       "platform": "web"
     }
