@@ -1,21 +1,21 @@
-# dsh-file-drop
+# @zhucherofficial/dsh-file-drop
 
 `dsh-file-drop` adds attachment, workspace-free chat, and conflict-preflight support to the DSH web profile:
 
 - Drop a file or folder onto the conversation input. The composer shows a removable attachment chip with an icon, basename, and `File` or `Folder` label. The absolute or staged path stays out of the visible draft and is serialized through DSH's reference pipeline only when the message is submitted.
 - Arbitrate overlapping drag handlers: image-only drops stay with DSH's native attachment plugin, ordinary files/folders are claimed here at capture phase, and AionUI workspace-path drags pass through to AionUI.
-- Resolve the known duplicate `describe_image` composition by selecting `@dsh-plugin/dsh-auxiliary` as the owner and disabling the aggregate `web-ui-describe-image` entry. This is a declarative loader patch applied before startup, so it prevents the registry exception instead of trying to recover after a crash.
-- Diagnose other startup registry collisions with a preflight command. It recognizes duplicate tools, web routes, input-trigger sources, sidebar tabs, file viewers, and web providers, then writes exact ID-targeted disable patches when ownership is unambiguous.
-- Add a **General chat** sidebar action. It creates a session with DSH's normal default `cwd` but without a `workspaceId`, so the session is not attached to a registered Workspace.
+- Resolve the known duplicate `describe_image` composition in preflight by preferring `@dsh-plugin/dsh-auxiliary`, then writing an ID-targeted disable patch before the next normal startup.
+- Diagnose other startup registry collisions with the same preflight command. It recognizes duplicate tools, web routes, input-trigger sources, sidebar tabs, file viewers, and web providers, then writes exact ID-targeted disable patches when ownership is unambiguous.
+- Add a **General chat** sidebar action. It creates a session with the host launch directory as `cwd` but without a `workspaceId`, so the session stays under **Ungrouped** instead of being attached to a registered Workspace.
 
 The upload route accepts only same-origin loopback requests, limits one file to 20 MiB and one drop to 50 MiB, rejects traversal and duplicate paths, and writes staged files with private permissions. Temporary drops older than 24 hours are removed when the host plugin starts.
 
-## Install from npm
+## Install from GitHub
 
-Publish this package as a public npm package, then users can install it with the exact DSH plugin command:
+The repository ships runnable JavaScript, so DSH can install it directly without a build step:
 
 ```sh
-dsh plugin --profile web add dsh-file-drop
+dsh plugin --profile web add github:zhucherofficial/dsh-file-drop
 ```
 
 Restart `dsh web` after installing.
@@ -35,14 +35,12 @@ dsh plugin --profile web exec dsh-file-drop-resolve --profile web \
 
 Before editing, the resolver backs up `~/.dsh/profiles/web/cordis.patch.yml`; after every applied rule it starts DSH on an ephemeral port and continues until the profile is healthy or an ambiguous/non-conflict failure is reached.
 
-## Install directly from GitHub
+## Install from npm
 
-After pushing this directory to `zhu1090093659/dsh-file-drop` (or changing the account in `package.json`), pnpm accepts a GitHub shorthand or a Git URL through the same DSH forwarder:
+The unscoped npm name `dsh-file-drop` belongs to a different project. This package uses a scope so the install command cannot resolve to that project. After the first public npm release, install it with:
 
 ```sh
-dsh plugin --profile web add github:zhu1090093659/dsh-file-drop
-# or
-dsh plugin --profile web add git+https://github.com/YOUR_ACCOUNT/dsh-file-drop.git
+dsh plugin --profile web add @zhucherofficial/dsh-file-drop
 ```
 
 The repository must keep `package.json`, `cordis.patch.yml`, and the `lib/` directory at its root. `dsh plugin` forwards the package spec to pnpm and automatically adds packages declaring `dsh.bundle.patch` to the web profile roster.
@@ -61,4 +59,4 @@ dsh plugin --profile web exec dsh-file-drop-resolve --profile web --check
 
 The second command changes the selected profile's dependency manifest. For a disposable verification profile, set `DSH_HOME` to a temporary directory before running it.
 
-No credentials or remote are assumed by the plugin itself.
+No credentials or remote service are used by the plugin itself. General chat relies on the blank-session phase behavior in DSH `0.1.1-rc.2`, so the package declares that release as its minimum supported DSH version.
