@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile, rm } from 'node:fs/promises'
 import { createServer } from 'node:http'
+import { isAbsolute } from 'node:path'
 import { runInNewContext } from 'node:vm'
 
 test('package metadata exposes a dsh bundle and browser client', async () => {
@@ -17,8 +18,13 @@ test('host module parses and client bundle registers with ModuleLoader', async (
 
   const source = await readFile(new URL('../lib/client.js', import.meta.url), 'utf8')
   const entries = []
+  let requestedUrl
   runInNewContext(source, {
     window: { __ModuleLoader__: { load: entry => entries.push(entry) } },
+    fetch: async url => {
+      requestedUrl = url
+      return { ok: true, status: 200, json: async () => ({ ok: true, cwd: '/tmp/dsh-general-chat' }) }
+    },
     URL,
   })
   assert.equal(entries.length, 1)
@@ -54,14 +60,43 @@ test('host module parses and client bundle registers with ModuleLoader', async (
   assert.equal(refSource.codec.clipboardText('batch-1'), '@"/tmp/a file.txt"')
   assert.equal(await refSource.codec.serialize('batch-1', new AbortController().signal), '@"/tmp/a file.txt"')
   await assert.rejects(refSource.codec.serialize('missing', new AbortController().signal), /no longer available/u)
+
+  let createOptions
+  let openedId
+  let composerNotifications = 0
+  const session = {
+    promptAttempted: false,
+    notifier: { markDirty: () => { composerNotifications += 1 } },
+    getSnapshot: () => ({ composerPhase: 'blank' }),
+  }
+  const sessionId = await client.startNeutral({
+    sessions: {
+      create: async options => { createOptions = options; return 'general-session' },
+      open: id => { openedId = id },
+      binding: id => id === 'general-session' ? { session } : undefined,
+    },
+  })
+  assert.equal(requestedUrl, '/dsh-file-drop/context')
+  assert.equal(sessionId, 'general-session')
+  assert.equal(openedId, sessionId)
+  assert.equal(createOptions.cwd, '/tmp/dsh-general-chat')
+  assert.equal(Object.hasOwn(createOptions, 'workspaceId'), false)
+  assert.equal(session.promptAttempted, true)
+  assert.equal(composerNotifications, 1)
 })
 
 async function routeServer() {
   const host = await import('../lib/index.js')
-  let handler
-  host.apply({ webServer: { register: route => { handler = route.handler; return () => {} } } })
-  assert.equal(typeof handler, 'function')
-  const server = createServer(handler)
+  const handlers = new Map()
+  host.apply({ webServer: { register: route => { handlers.set(route.path, route.handler); return () => {} } } })
+  const server = createServer((req, res) => {
+    const handler = handlers.get(req.url)
+    if (handler === undefined) {
+      res.writeHead(404).end()
+      return
+    }
+    handler(req, res)
+  })
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
   const address = server.address()
   assert.equal(typeof address, 'object')
@@ -71,6 +106,25 @@ async function routeServer() {
     close: () => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())),
   }
 }
+
+test('context route exposes a protected absolute cwd for General chat', async () => {
+  const server = await routeServer()
+  try {
+    const response = await fetch(`${server.origin}/dsh-file-drop/context`, {
+      headers: { origin: server.origin, 'sec-fetch-site': 'same-origin' },
+    })
+    assert.equal(response.status, 200)
+    const payload = await response.json()
+    assert.equal(payload.ok, true)
+    assert.equal(isAbsolute(payload.cwd), true)
+    assert.equal(payload.cwd, process.cwd())
+
+    const refused = await fetch(`${server.origin}/dsh-file-drop/context`)
+    assert.equal(refused.status, 403)
+  } finally {
+    await server.close()
+  }
+})
 
 test('upload route stages a dropped folder and rejects traversal', async () => {
   const server = await routeServer()
