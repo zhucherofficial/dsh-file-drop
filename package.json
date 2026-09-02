@@ -1,7 +1,7 @@
 {
   "name": "@zhucher/dsh-file-drop",
   "version": "0.2.0",
-  "description": "Attach dropped files and folders to DSH web conversations, start workspace-free chats, and preflight plugin conflicts.",
+  "description": "Attach local files, import MCP servers, start workspace-free chats, and preflight plugin conflicts in DSH.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -37,6 +37,8 @@
     "dsh-plugin",
     "file-drop",
     "attachments",
+    "mcp",
+    "mcp-import",
     "plugin-conflicts"
   ],
   "publishConfig": {
@@ -48,6 +50,9 @@
     "test": "node --test test/*.test.mjs",
     "verify-release": "node scripts/verify-release.mjs",
     "version-packages": "changeset version"
+  },
+  "dependencies": {
+    "smol-toml": "^1.8.0"
   },
   "engines": {
     "node": ">=20"
