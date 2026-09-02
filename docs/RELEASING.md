@@ -66,7 +66,7 @@ gh release create "v${VERSION}" --target "$RELEASE_COMMIT" --generate-notes --ti
 
 Do not retarget the release to a later `main` tip. Publishing the GitHub Release starts `.github/workflows/publish.yml`. The workflow serializes releases, verifies the tag and exact version are newer than npm `latest`, rejects prereleases and unconsumed Changesets, checks that the tagged commit belongs to `main`, and runs tests without OIDC access.
 
-The validation job packages the release with lifecycle scripts disabled. Only its tarball enters the environment-gated publish job, which receives `id-token: write` and publishes the tarball with provenance and scripts disabled.
+The validation job independently parses the consumed Changesets and checks their bump type against `package.json`, both lockfile version fields, and the changelog heading. It then packages the release with lifecycle scripts disabled. Only that tarball enters the environment-gated publish job, which receives `id-token: write` and publishes with provenance and scripts disabled.
 
 ## Recovery
 

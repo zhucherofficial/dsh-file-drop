@@ -38,24 +38,7 @@ jobs:
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           BASE_VERSION=$(git show "$BASE_SHA:package.json" | node -e "let input = ''; process.stdin.on('data', (chunk) => input += chunk); process.stdin.on('end', () => console.log(JSON.parse(input).version));")
           if [[ "$CURRENT_VERSION" != "$BASE_VERSION" ]]; then
-            CHANGED_FILES=$(git diff --name-only "$BASE_SHA...HEAD")
-            if ! grep -qx 'CHANGELOG.md' <<<"$CHANGED_FILES" || ! grep -qx 'package-lock.json' <<<"$CHANGED_FILES"; then
-              echo "A version PR must update CHANGELOG.md and package-lock.json." >&2
-              exit 1
-            fi
-            CONSUMED_CHANGESETS=$(git diff --diff-filter=D --name-only "$BASE_SHA...HEAD" -- '.changeset/*.md' | grep -viE '/README\.md$' || true)
-            PACKAGE_NAME=$(node -p "require('./package.json').name")
-            HAS_PACKAGE_CHANGESET=false
-            for CHANGESET_FILE in $CONSUMED_CHANGESETS; do
-              if git show "$BASE_SHA:$CHANGESET_FILE" | grep -Fq "$PACKAGE_NAME"; then
-                HAS_PACKAGE_CHANGESET=true
-                break
-              fi
-            done
-            if [[ "$HAS_PACKAGE_CHANGESET" != true ]]; then
-              echo "A version PR must consume a pre-existing Changeset for $PACKAGE_NAME." >&2
-              exit 1
-            fi
+            npm run verify-version-artifacts -- "$BASE_SHA"
             exit 0
           fi
           CHANGESET_FILES=$(git diff --diff-filter=A --name-only "$BASE_SHA...HEAD" -- '.changeset/*.md' | grep -viE '/README\.md$' || true)
