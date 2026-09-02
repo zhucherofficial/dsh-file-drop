@@ -1,10 +1,5 @@
 # Changelog
 
-## 0.3.0 - 2026-09-02
-
-- Add local MCP discovery and one-click import from the DSH sidebar.
-- Keep MCP commands and credentials on the host while returning only display metadata to the browser.
-
 All notable changes to this project are documented here.
 
 ## 0.2.0 - 2026-08-26

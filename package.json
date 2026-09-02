@@ -1,6 +1,6 @@
 {
   "name": "@zhucher/dsh-file-drop",
-  "version": "0.3.0",
+  "version": "0.2.0",
   "description": "Attach local files, import MCP servers, start workspace-free chats, and preflight plugin conflicts in DSH.",
   "type": "module",
   "main": "lib/index.js",
