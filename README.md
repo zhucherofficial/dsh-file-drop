@@ -53,12 +53,15 @@ Conflict repair is intentionally a preflight command rather than a runtime hook.
 ## Local development
 
 ```sh
+npm ci
 npm test
 dsh plugin --profile web add link:/absolute/path/to/dsh-file-drop
 dsh plugin --profile web exec dsh-file-drop-resolve --profile web --check
 ```
 
-The second command changes the selected profile's dependency manifest. For a disposable verification profile, set `DSH_HOME` to a temporary directory before running it.
+Published behavior changes should include a Changeset created with `npm run changeset`. See [the release runbook](docs/RELEASING.md) for versioning, publishing, and recovery.
+
+The third command changes the selected profile's dependency manifest. For a disposable verification profile, set `DSH_HOME` to a temporary directory before running it.
 
 No credentials or remote service are used by the plugin itself. General chat relies on the blank-session phase behavior in DSH `0.1.1-rc.2`, so the package declares that release as its minimum supported DSH version.
 
