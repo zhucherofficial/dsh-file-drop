@@ -89,7 +89,10 @@ test('host module parses and client bundle registers with ModuleLoader', async (
 async function routeServer() {
   const host = await import('../lib/index.js')
   const handlers = new Map()
-  host.apply({ webServer: { register: route => { handlers.set(route.path, route.handler); return () => {} } } })
+  host.apply({
+    loader: { entries: function* () {} },
+    webServer: { register: route => { handlers.set(route.path, route.handler); return () => {} } },
+  })
   const server = createServer((req, res) => {
     const handler = handlers.get(req.url)
     if (handler === undefined) {
