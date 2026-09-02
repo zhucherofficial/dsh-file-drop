@@ -6,6 +6,7 @@
 - Arbitrate overlapping drag handlers: image-only drops stay with DSH's native attachment plugin, ordinary files/folders are claimed here at capture phase, and AionUI workspace-path drags pass through to AionUI.
 - Resolve the known duplicate `describe_image` composition in preflight by preferring `@dsh-plugin/dsh-auxiliary`, then writing an ID-targeted disable patch before the next normal startup.
 - Diagnose other startup registry collisions with the same preflight command. It recognizes duplicate tools, web routes, input-trigger sources, sidebar tabs, file viewers, and web providers, then writes exact ID-targeted disable patches when ownership is unambiguous.
+- Discover local MCP definitions from Codex, Claude, Cursor, workspace `.mcp.json` files, and installed plugin caches. Open **MCP Import** in the DSH sidebar and import a server with one click; the resulting `@deepseek-ai/dsh-mcp-client` entry is persisted in the active profile.
 - Add a **General chat** sidebar action. It creates a session with the host launch directory as `cwd` but without a `workspaceId`, so the session stays under **Ungrouped** instead of being attached to a registered Workspace.
 
 The upload route accepts only same-origin loopback requests, limits one file to 20 MiB and one drop to 50 MiB, rejects traversal and duplicate paths, and writes staged files with private permissions. Temporary drops older than 24 hours are removed when the host plugin starts.
@@ -63,3 +64,5 @@ Published behavior changes should include a Changeset created with `npm run chan
 The third command changes the selected profile's dependency manifest. For a disposable verification profile, set `DSH_HOME` to a temporary directory before running it.
 
 No credentials or remote service are used by the plugin itself. General chat relies on the blank-session phase behavior in DSH `0.1.1-rc.2`, so the package declares that release as its minimum supported DSH version.
+
+MCP discovery never sends command lines, environment variables, headers, or credentials to the browser. Only display metadata is returned by the inventory route; the selected definition is resolved and persisted on the DSH host when you click Import.

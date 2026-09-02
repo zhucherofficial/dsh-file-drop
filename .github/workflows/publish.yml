@@ -47,6 +47,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: npm run verify-version-artifacts -- HEAD^
       - name: Verify release version and Changesets
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
